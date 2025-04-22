@@ -1378,6 +1378,9 @@ GnssModel_t GPS::getProbeResponse(unsigned long timeout, const std::vector<ChipI
             bytesRead++;
 
             if ((bytesRead == 767) || (b == '\r')) {
+#ifdef GPS_DEBUG
+                LOG_DEBUG(response.c_str());
+#endif
                 // Check the buffer against each possible response in the map
                 for (const auto &chip : responseMap) {
                     if (strnstr((char *)buffer, chip.detectionString.c_str(), bytesRead) != nullptr) {
