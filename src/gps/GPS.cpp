@@ -1791,19 +1791,21 @@ bool GPS::whileActive()
 }
 void GPS::enable()
 {
-    LOG_INFO("GPS - enabling");
-    // ensure we are marked as enabled in config
-    config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_ENABLED;
-    // Start our thread
-    setIntervalFromNow(0); // Run right away
-    shouldPublish = true;
+    LOG_INFO("GPS - disabling");
+    // Clear the old scheduling info (reset the lock-time prediction)
+    scheduling.reset();
+
+    enabled = true;
+    setInterval(GPS_THREAD_INTERVAL);
+
+    scheduling.informSearching();
+    setPowerState(GPS_ACTIVE);
 }
 
 int32_t GPS::disable()
 {
     LOG_INFO("GPS - disabling");
-    config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_DISABLED;
-
+    enabled = false;
     // Clear any resources
     setPowerState(GPS_OFF);
 
