@@ -1809,14 +1809,9 @@ int32_t GPS::disable()
     // Clear any resources
     setPowerState(GPS_OFF);
 
-    // Don't really terminate our thread (because it might be holding locks etc...), just let it sleep forever
-    // enableThread(false);
-    setInterval(INT32_MAX);
-
-    // Ensure no memory leak during disable
     clearBuffer();
 
-    return 0;
+    return INT32_MAX;
 }
 
 void GPS::toggleGpsMode()
