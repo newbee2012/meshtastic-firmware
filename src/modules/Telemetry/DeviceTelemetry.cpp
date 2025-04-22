@@ -74,24 +74,14 @@ meshtastic_MeshPacket *DeviceTelemetryModule::allocReply()
             LOG_ERROR("Error decoding DeviceTelemetry module!");
             return NULL;
         }
-
-        // Store our reply packet before we release currentRequest
-        meshtastic_MeshPacket *reply = NULL;
-
         // Check for a request for device metrics
         if (decoded->which_variant == meshtastic_Telemetry_device_metrics_tag) {
             LOG_INFO("Device telemetry reply to request");
-            reply = allocDataProtobuf(getDeviceTelemetry());
+            return allocDataProtobuf(getDeviceTelemetry());
         } else if (decoded->which_variant == meshtastic_Telemetry_local_stats_tag) {
             LOG_INFO("Device telemetry reply w/ LocalStats to request");
-            reply = allocDataProtobuf(getLocalStatsTelemetry());
+            return allocDataProtobuf(getLocalStatsTelemetry());
         }
-
-        // We no longer need the request packet - free it
-        packetPool.release((meshtastic_MeshPacket *)currentRequest);
-        currentRequest = NULL;
-
-        return reply;
     }
     return NULL;
 }
@@ -183,30 +173,17 @@ bool DeviceTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
              telemetry.variant.device_metrics.uptime_seconds);
 
     meshtastic_MeshPacket *p = allocDataProtobuf(telemetry);
-    if (!p) {
-        LOG_ERROR("Failed to allocate packet for telemetry");
-        return false;
-    }
-
     p->to = dest;
     p->decoded.want_response = false;
     p->priority = meshtastic_MeshPacket_Priority_BACKGROUND;
 
     nodeDB->updateTelemetry(nodeDB->getNodeNum(), telemetry, RX_SRC_LOCAL);
-    bool success = false;
-
     if (phoneOnly) {
         LOG_INFO("Send packet to phone");
-        success = service->sendToPhone(p);
+        service->sendToPhone(p);
     } else {
         LOG_INFO("Send packet to mesh");
-        success = service->sendToMesh(p, RX_SRC_LOCAL, true);
+        service->sendToMesh(p, RX_SRC_LOCAL, true);
     }
-
-    // If sending failed, free the packet to prevent memory leak
-    if (!success) {
-        packetPool.release(p);
-    }
-
-    return success;
+    return true;
 }
