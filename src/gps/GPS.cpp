@@ -804,32 +804,26 @@ GPS::~GPS()
     if (enablePin) {
         // First delete any transformer objects
         if (pinTransformer) {
-            delete pinTransformer;
             pinTransformer = nullptr;
         }
 
         if (unaryTransformer) {
-            delete unaryTransformer;
             unaryTransformer = nullptr;
         }
 
         if (notTransformer) {
-            delete notTransformer;
             notTransformer = nullptr;
         }
 
         if (enableTransformer) {
-            delete enableTransformer;
             enableTransformer = nullptr;
         }
 
         if (hwPin) {
-            delete hwPin;
             hwPin = nullptr;
         }
 
         // Finally delete the enablePin
-        delete enablePin;
         enablePin = nullptr;
     }
 }
@@ -1386,8 +1380,8 @@ GnssModel_t GPS::getProbeResponse(unsigned long timeout, const std::vector<ChipI
             if ((bytesRead == 767) || (b == '\r')) {
                 // Check the buffer against each possible response in the map
                 for (const auto &chip : responseMap) {
-                    if (strnstr((char *)buffer, chip.response, bytesRead) != nullptr) {
-                        LOG_INFO(DETECTED_MESSAGE, chip.name);
+                    if (strnstr((char *)buffer, chip.detectionString.c_str(), bytesRead) != nullptr) {
+                        LOG_INFO("%s detected", chip.chipName.c_str());
                         // Clear any remaining bytes in the buffer to prevent interfering with future commands
                         clearBuffer();
                         return chip.driver;
