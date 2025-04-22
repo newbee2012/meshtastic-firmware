@@ -183,14 +183,18 @@ bool NextHopRouter::stopRetransmission(GlobalPacketId key)
 PendingPacket *NextHopRouter::startRetransmission(meshtastic_MeshPacket *p, uint8_t numReTx)
 {
     auto id = GlobalPacketId(p);
-    auto rec = PendingPacket(p, numReTx);
 
+    // First remove any old retransmission with same ID
     stopRetransmission(getFrom(p), p->id);
 
-    setNextTx(&rec);
-    pending[id] = rec;
+    // Insert directly into the map and get a reference to the inserted element
+    auto result = pending.emplace(id, PendingPacket(p, numReTx));
+    PendingPacket *pendingPtr = &(result.first->second);
 
-    return &pending[id];
+    // Now set the next transmission time
+    setNextTx(pendingPtr);
+
+    return pendingPtr;
 }
 
 /**
