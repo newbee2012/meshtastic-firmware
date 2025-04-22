@@ -73,7 +73,7 @@ class GPS : private concurrency::OSThread
     // Store pointers to transformers for cleanup
     GpioTransformer *pinTransformer = NULL;
 
-    // Added pointers to manage GPIO transformers to fix memory leak
+    // Add pointers to manage GPIO transformers to prevent memory leak
     GpioUnaryTransformer *gpioUnaryTransformer = NULL;
     GpioNotTransformer *gpioNotTransformer = NULL;
 

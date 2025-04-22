@@ -319,7 +319,6 @@ GPS_RESPONSE GPS::getACKCas(uint8_t class_id, uint8_t msg_id, uint32_t waitMilli
     return GNSS_RESPONSE_NONE;
 }
 
-// Fix memory leak in getACK where buffer is allocated but not properly managed
 GPS_RESPONSE GPS::getACK(uint8_t class_id, uint8_t msg_id, uint32_t waitMillis)
 {
     uint8_t b;
