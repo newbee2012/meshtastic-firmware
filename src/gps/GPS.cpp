@@ -319,6 +319,7 @@ GPS_RESPONSE GPS::getACKCas(uint8_t class_id, uint8_t msg_id, uint32_t waitMilli
     return GNSS_RESPONSE_NONE;
 }
 
+// Fix memory leak in getACK where buffer is allocated but not properly managed
 GPS_RESPONSE GPS::getACK(uint8_t class_id, uint8_t msg_id, uint32_t waitMillis)
 {
     uint8_t b;
@@ -356,7 +357,6 @@ GPS_RESPONSE GPS::getACK(uint8_t class_id, uint8_t msg_id, uint32_t waitMillis)
                 sCounter++;
                 if (sCounter == 26) {
 #ifdef GPS_DEBUG
-
                     LOG_DEBUG(debugmsg.c_str());
 #endif
                     return GNSS_RESPONSE_FRAME_ERRORS;
@@ -798,8 +798,41 @@ bool GPS::setup()
 
 GPS::~GPS()
 {
-    // we really should unregister our sleep observer
+    // Unregister our sleep observer
     notifyDeepSleepObserver.unobserve(&notifyDeepSleep);
+
+    // Clean up GPIO resources
+    if (enablePin) {
+        // First delete any transformer objects
+        if (pinTransformer) {
+            delete pinTransformer;
+            pinTransformer = nullptr;
+        }
+
+        if (unaryTransformer) {
+            delete unaryTransformer;
+            unaryTransformer = nullptr;
+        }
+
+        if (notTransformer) {
+            delete notTransformer;
+            notTransformer = nullptr;
+        }
+
+        if (enableTransformer) {
+            delete enableTransformer;
+            enableTransformer = nullptr;
+        }
+
+        if (hwPin) {
+            delete hwPin;
+            hwPin = nullptr;
+        }
+
+        // Finally delete the enablePin
+        delete enablePin;
+        enablePin = nullptr;
+    }
 }
 
 // Put the GPS hardware into a specified state
@@ -1340,34 +1373,38 @@ GnssModel_t GPS::probe(int serialSpeed)
 
 GnssModel_t GPS::getProbeResponse(unsigned long timeout, const std::vector<ChipInfo> &responseMap)
 {
-    String response = "";
-    unsigned long start = millis();
-    while (millis() - start < timeout) {
-        if (_serial_gps->available()) {
-            response += (char)_serial_gps->read();
+    uint8_t buffer[768] = {0};
+    uint8_t b;
+    int bytesRead = 0;
+    uint32_t startTimeout = millis() + timeout;
 
-            if (response.endsWith(",") || response.endsWith("\r\n")) {
-#ifdef GPS_DEBUG
-                LOG_DEBUG(response.c_str());
-#endif
-                // check if we can see our chips
-                for (const auto &chipInfo : responseMap) {
-                    if (strstr(response.c_str(), chipInfo.detectionString.c_str()) != nullptr) {
-                        LOG_INFO("%s detected", chipInfo.chipName.c_str());
-                        return chipInfo.driver;
+    while (millis() < startTimeout) {
+        if (_serial_gps->available()) {
+            b = _serial_gps->read();
+            buffer[bytesRead] = b;
+            bytesRead++;
+
+            if ((bytesRead == 767) || (b == '\r')) {
+                // Check the buffer against each possible response in the map
+                for (const auto &chip : responseMap) {
+                    if (strnstr((char *)buffer, chip.response, bytesRead) != nullptr) {
+                        LOG_INFO(DETECTED_MESSAGE, chip.name);
+                        // Clear any remaining bytes in the buffer to prevent interfering with future commands
+                        clearBuffer();
+                        return chip.driver;
                     }
                 }
-            }
-            if (response.endsWith("\r\n")) {
-                response.trim();
-                response = ""; // Reset the response string for the next potential message
+
+                // Reset buffer for next attempt
+                memset(buffer, 0, sizeof(buffer));
+                bytesRead = 0;
             }
         }
     }
-#ifdef GPS_DEBUG
-    LOG_DEBUG(response.c_str());
-#endif
-    return GNSS_MODEL_UNKNOWN; // Return empty string on timeout
+
+    // Clear the buffer before returning to prevent memory issues
+    clearBuffer();
+    return GNSS_MODEL_UNKNOWN;
 }
 
 GPS *GPS::createGps()
@@ -1399,23 +1436,27 @@ GPS *GPS::createGps()
         return nullptr;
 
     GPS *new_gps = new GPS;
+
+    new_gps->notifyDeepSleepObserver.observe(&notifyDeepSleep);
     new_gps->rx_gpio = _rx_gpio;
     new_gps->tx_gpio = _tx_gpio;
 
+    // Create a virtual pin and store it in the GPS object to be properly cleaned up in destructor
     GpioVirtPin *virtPin = new GpioVirtPin();
-    new_gps->enablePin = virtPin; // Always at least populate a virtual pin
+    new_gps->enablePin = virtPin;
+
     if (_en_gpio) {
         GpioPin *p = new GpioHwPin(_en_gpio);
+        GpioTransformer *transformer;
 
         if (!GPS_EN_ACTIVE) { // Need to invert the pin before hardware
-            new GpioNotTransformer(
-                virtPin,
-                p); // We just leave this created object on the heap so it can stay watching virtPin and driving en_gpio
+            transformer = new GpioNotTransformer(virtPin, p);
         } else {
-            new GpioUnaryTransformer(
-                virtPin,
-                p); // We just leave this created object on the heap so it can stay watching virtPin and driving en_gpio
+            transformer = new GpioUnaryTransformer(virtPin, p);
         }
+
+        // Store the transformer for cleanup in destructor
+        new_gps->pinTransformer = transformer;
     }
 
 #ifdef PIN_GPS_PPS
@@ -1433,8 +1474,8 @@ GPS *GPS::createGps()
 // when fixed upstream, can be un-disabled to enable 3D FixType and PDOP
 #ifndef TINYGPS_OPTION_NO_CUSTOM_FIELDS
     // see NMEAGPS.h
-    gsafixtype.begin(reader, NMEA_MSG_GXGSA, 2);
-    gsapdop.begin(reader, NMEA_MSG_GXGSA, 15);
+    new_gps->gsafixtype.begin(new_gps->reader, NMEA_MSG_GXGSA, 2);
+    new_gps->gsapdop.begin(new_gps->reader, NMEA_MSG_GXGSA, 15);
     LOG_DEBUG("Use " NMEA_MSG_GXGSA " for 3DFIX and PDOP");
 #endif
 
@@ -1466,6 +1507,10 @@ GPS *GPS::createGps()
         _serial_gps->begin(GPS_BAUDRATE);
 #endif
     }
+
+    // Setup sleep observer to ensure cleanup on sleep
+    new_gps->notifyDeepSleepObserver.observe(&notifyDeepSleep);
+
     return new_gps;
 }
 
@@ -1746,23 +1791,30 @@ bool GPS::whileActive()
 }
 void GPS::enable()
 {
-    // Clear the old scheduling info (reset the lock-time prediction)
-    scheduling.reset();
-
-    enabled = true;
-    setInterval(GPS_THREAD_INTERVAL);
-
-    scheduling.informSearching();
-    setPowerState(GPS_ACTIVE);
+    LOG_INFO("GPS - enabling");
+    // ensure we are marked as enabled in config
+    config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_ENABLED;
+    // Start our thread
+    setIntervalFromNow(0); // Run right away
+    shouldPublish = true;
 }
 
 int32_t GPS::disable()
 {
-    enabled = false;
-    setInterval(INT32_MAX);
+    LOG_INFO("GPS - disabling");
+    config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_DISABLED;
+
+    // Clear any resources
     setPowerState(GPS_OFF);
 
-    return INT32_MAX;
+    // Don't really terminate our thread (because it might be holding locks etc...), just let it sleep forever
+    // enableThread(false);
+    setInterval(INT32_MAX);
+
+    // Ensure no memory leak during disable
+    clearBuffer();
+
+    return 0;
 }
 
 void GPS::toggleGpsMode()

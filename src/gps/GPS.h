@@ -70,6 +70,18 @@ class GPS : private concurrency::OSThread
      */
     GpioVirtPin *enablePin = NULL;
 
+    // Store pointers to transformers for cleanup
+    GpioTransformer *pinTransformer = NULL;
+
+    // Added pointers to manage GPIO transformers to fix memory leak
+    GpioUnaryTransformer *gpioUnaryTransformer = NULL;
+    GpioNotTransformer *gpioNotTransformer = NULL;
+
+    // Add pointers to the transformer objects so we can delete them in the destructor
+    GpioUnaryTransformer *unaryTransformer = NULL;
+    GpioNotTransformer *notTransformer = NULL;
+    GpioPin *hwPin = NULL;
+
     virtual ~GPS();
 
     /** We will notify this observable anytime GPS state has changed meaningfully */
@@ -118,6 +130,13 @@ class GPS : private concurrency::OSThread
 
   private:
     GPS() : concurrency::OSThread("GPS") {}
+
+    // Pointers to GPIO transformers created in createGps(), to be cleaned up in destructor
+    GpioTransformer *gpioTransformer = nullptr;
+    GpioTransformer *enablePinTransformer = nullptr;
+
+    // Store pointers to the GPIO transformers to prevent memory leaks
+    GpioTransformer *enableTransformer = nullptr;
 
     /// Record that we have a GPS
     void setConnected();
