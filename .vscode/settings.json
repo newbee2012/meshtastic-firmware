@@ -10,5 +10,24 @@
   },
   "[powershell]": {
     "editor.defaultFormatter": "ms-vscode.powershell"
+  },
+  "files.associations": {
+    "array": "cpp",
+    "deque": "cpp",
+    "list": "cpp",
+    "string": "cpp",
+    "unordered_map": "cpp",
+    "unordered_set": "cpp",
+    "vector": "cpp",
+    "string_view": "cpp",
+    "memory": "cpp",
+    "random": "cpp",
+    "initializer_list": "cpp",
+    "fstream": "cpp",
+    "istream": "cpp",
+    "numeric": "cpp",
+    "ostream": "cpp",
+    "sstream": "cpp",
+    "cmath": "cpp"
   }
 }

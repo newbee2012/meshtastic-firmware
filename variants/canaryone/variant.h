@@ -109,7 +109,7 @@ static const uint8_t A0 = PIN_A0;
  * Lora radio
  */
 #define RADIOLIB_DEBUG 1
-#define USE_SX1262
+#define USE_SX1268
 #define SX126X_CS (GPIO_PORT0 + 24)
 #define SX126X_DIO1 (GPIO_PORT1 + 11)
 // #define SX126X_DIO3 (GPIO_PORT0 + 21)

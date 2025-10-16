@@ -36,6 +36,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 //#define USE_SX1262 // E22-900M30S, E22-900M22S, and E22-900MM22S (not E220!) use SX1262
+#define RADIOLIB_DEBUG 1
+#define RADIOLIB_DEBUG_BASIC 1
 #define USE_SX1268 // E22-400M30S, E22-400M33S, E22-400M22S, and E22-400MM22S use SX1268
 #define SX126X_DIO3_TCXO_VOLTAGE 2.2
 #define TCXO_OPTIONAL

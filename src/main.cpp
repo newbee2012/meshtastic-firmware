@@ -260,6 +260,115 @@ void printInfo()
     LOG_INFO("S:B:%d,%s", HW_VENDOR, optstr(APP_VERSION));
 }
 #ifndef PIO_UNIT_TESTING
+
+#include <RadioLib.h>
+void setup2() {
+    // SX1262 has the following connections:
+// NSS pin:   10
+// DIO1 pin:  2
+// NRST pin:  3
+// BUSY pin:  9
+  SX1268 radio1 = new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY);
+  Serial.begin(115200);
+  delay(5000); 
+
+  // initialize SX1268 with default settings
+  LOG_INFO("[SX1268] 4444444444444444xxxxxxxxxxxxxxxxx Initializing ... ");
+  int state = radio1.begin();
+
+  if (state == RADIOLIB_ERR_NONE) {
+   LOG_INFO("success!");
+  } else {
+    LOG_INFO("failed, code %d", state);
+    while (true) { delay(10); }
+  }
+
+ 
+  if (state == RADIOLIB_ERR_NONE) {
+    LOG_INFO("success!");
+  } else {
+    LOG_INFO("failed, code, %d ", state);
+    while (true) { delay(10); }
+  }
+
+  // you can also change the settings at runtime
+  // and check if the configuration was changed successfully
+
+  // set carrier frequency to 433.5 MHz
+  if (radio1.setFrequency(433.5) == RADIOLIB_ERR_INVALID_FREQUENCY) {
+    Serial.println(F("Selected frequency is invalid for this module!"));
+    while (true) { delay(10); }
+  }
+
+  // set bandwidth to 250 kHz
+  if (radio1.setBandwidth(250.0) == RADIOLIB_ERR_INVALID_BANDWIDTH) {
+    Serial.println(F("Selected bandwidth is invalid for this module!"));
+    while (true) { delay(10); }
+  }
+
+  // set spreading factor to 10
+  if (radio1.setSpreadingFactor(10) == RADIOLIB_ERR_INVALID_SPREADING_FACTOR) {
+    Serial.println(F("Selected spreading factor is invalid for this module!"));
+    while (true) { delay(10); }
+  }
+
+  // set coding rate to 6
+  if (radio1.setCodingRate(6) == RADIOLIB_ERR_INVALID_CODING_RATE) {
+    Serial.println(F("Selected coding rate is invalid for this module!"));
+    while (true) { delay(10); }
+  }
+
+  // set LoRa sync word to 0xAB
+  if (radio1.setSyncWord(0xAB) != RADIOLIB_ERR_NONE) {
+    Serial.println(F("Unable to set sync word!"));
+    while (true) { delay(10); }
+  }
+
+  // set output power to 10 dBm (accepted range is -17 - 22 dBm)
+  if (radio1.setOutputPower(10) == RADIOLIB_ERR_INVALID_OUTPUT_POWER) {
+    Serial.println(F("Selected output power is invalid for this module!"));
+    while (true) { delay(10); }
+  }
+
+  // set over current protection limit to 80 mA (accepted range is 45 - 240 mA)
+  // NOTE: set value to 0 to disable overcurrent protection
+  if (radio1.setCurrentLimit(80) == RADIOLIB_ERR_INVALID_CURRENT_LIMIT) {
+    Serial.println(F("Selected current limit is invalid for this module!"));
+    while (true) { delay(10); }
+  }
+
+  // set LoRa preamble length to 15 symbols (accepted range is 0 - 65535)
+  if (radio1.setPreambleLength(15) == RADIOLIB_ERR_INVALID_PREAMBLE_LENGTH) {
+    Serial.println(F("Selected preamble length is invalid for this module!"));
+    while (true) { delay(10); }
+  }
+
+  // disable CRC
+  if (radio1.setCRC(false) == RADIOLIB_ERR_INVALID_CRC_CONFIGURATION) {
+    Serial.println(F("Selected CRC is invalid for this module!"));
+    while (true) { delay(10); }
+  }
+
+  // Some SX126x modules have TCXO (temperature compensated crystal
+  // oscillator). To configure TCXO reference voltage,
+  // the following method can be used.
+  if (radio1.setTCXO(2.4) == RADIOLIB_ERR_INVALID_TCXO_VOLTAGE) {
+    Serial.println(F("Selected TCXO voltage is invalid for this module!"));
+    while (true) { delay(10); }
+  }
+
+  // Some SX126x modules use DIO2 as RF switch. To enable
+  // this feature, the following method can be used.
+  // NOTE: As long as DIO2 is configured to control RF switch,
+  //       it can't be used as interrupt pin!
+  if (radio1.setDio2AsRfSwitch() != RADIOLIB_ERR_NONE) {
+    Serial.println(F("Failed to set DIO2 as RF switch!"));
+    while (true) { delay(10); }
+  }
+
+  Serial.println(F("All settings succesfully changed!"));
+}
+
 void setup()
 {
 
@@ -307,6 +416,31 @@ void setup()
     digitalWrite(TFT_CS, HIGH);
     delay(100);
 #endif
+
+pinMode(LORA_CS, OUTPUT);          // Arduino 默认配置
+digitalWrite(LORA_CS, HIGH);       // 初始高电平
+
+// 手动启用高驱动模式（H0H1）
+    uint32_t pin = g_ADigitalPinMap[LORA_CS];  // 获取物理引脚号（如 P0.13 -> 13）
+    NRF_GPIO->PIN_CNF[pin] = 
+        (GPIO_PIN_CNF_DIR_Output << GPIO_PIN_CNF_DIR_Pos) |
+        (GPIO_PIN_CNF_INPUT_Disconnect << GPIO_PIN_CNF_INPUT_Pos) |
+        (GPIO_PIN_CNF_PULL_Disabled << GPIO_PIN_CNF_PULL_Pos) |
+        (GPIO_PIN_CNF_DRIVE_H0H1 << GPIO_PIN_CNF_DRIVE_Pos) |  // 高驱动模式
+        (GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos);
+
+pinMode(PIN_SPI_MOSI, OUTPUT);          // Arduino 默认配置
+digitalWrite(PIN_SPI_MOSI, HIGH);       // 初始高电平
+
+// 手动启用高驱动模式（H0H1）
+    pin = g_ADigitalPinMap[PIN_SPI_MOSI];  // 获取物理引脚号（如 P0.13 -> 13）
+    NRF_GPIO->PIN_CNF[pin] = 
+        (GPIO_PIN_CNF_DIR_Output << GPIO_PIN_CNF_DIR_Pos) |
+        (GPIO_PIN_CNF_INPUT_Disconnect << GPIO_PIN_CNF_INPUT_Pos) |
+        (GPIO_PIN_CNF_PULL_Disabled << GPIO_PIN_CNF_PULL_Pos) |
+        (GPIO_PIN_CNF_DRIVE_H0H1 << GPIO_PIN_CNF_DRIVE_Pos) |  // 高驱动模式
+        (GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos);
+
 
     concurrency::hasBeenSetup = true;
 #if ARCH_PORTDUINO
@@ -777,6 +911,9 @@ void setup()
         SPI.begin();
     }
 #elif !defined(ARCH_ESP32) // ARCH_RP2040
+    pinMode(LORA_CS, OUTPUT);
+    digitalWrite(LORA_CS, HIGH);
+    delay(100);
     SPI.begin();
 #else
     // ESP32
@@ -1043,10 +1180,13 @@ void setup()
     }
 #endif
 
+//setup2();
 #if defined(USE_SX1268)
 #if defined(SX126X_DIO3_TCXO_VOLTAGE) && defined(TCXO_OPTIONAL)
     if ((!rIf) && (config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_LORA_24)) {
         // try using the specified TCXO voltage
+        LOG_WARN("SX1268 radio will init!!!!!!");
+        delay(10000);
         auto *sxIf = new SX1268Interface(RadioLibHAL, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY);
         sxIf->setTCXOVoltage(SX126X_DIO3_TCXO_VOLTAGE);
         if (!sxIf->init()) {
@@ -1058,6 +1198,9 @@ void setup()
             rIf = sxIf;
             radioType = SX1268_RADIO;
         }
+
+        LOG_WARN("SX1268 radio init finished!!!!!!");
+        delay(5000);
     }
 #endif
     if ((!rIf) && (config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_LORA_24)) {
@@ -1291,6 +1434,7 @@ void scannerToSensorsMap(const std::unique_ptr<ScanI2CTwoWire> &i2cScanner, Scan
     }
 }
 #endif
+
 
 #ifndef PIO_UNIT_TESTING
 void loop()
