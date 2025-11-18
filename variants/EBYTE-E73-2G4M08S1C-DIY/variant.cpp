@@ -36,6 +36,4 @@ void initVariant()
     ledOff(PIN_LED1);
     pinMode(LORA_CS, OUTPUT);
     digitalWrite(LORA_CS, HIGH);
-    nrf_gpio_cfg_output(LORA_CS);
-    nrf_gpio_pin_set(LORA_CS);  // 初始化为高电平（空闲状态）
 }
