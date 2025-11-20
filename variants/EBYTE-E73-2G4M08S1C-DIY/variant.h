@@ -42,23 +42,23 @@ extern "C" {
 #define NUM_ANALOG_OUTPUTS (0)
 
 // // LEDs
-#define PIN_LED1 (32 + 9) // green (confirmed on 1.0 board)
-#define LED_BLUE PIN_LED1 // fake for bluefruit library
-#define LED_GREEN PIN_LED1
-#define LED_BUILTIN LED_GREEN
-#define LED_STATE_ON 0 // State when LED is lit
+#define PIN_LED1 (32 + 13)
+#define LED_BLUE PIN_LED1
+// #define LED_GREEN PIN_LED1
+#define LED_BUILTIN PIN_LED1
+#define LED_STATE_ON 1 // State when LED is lit
 
 // // QSPI Pins
-#define PIN_QSPI_SCK (32 + 14)
-#define PIN_QSPI_CS (32 + 15)
-#define PIN_QSPI_IO0 (32 + 12) // MOSI if using two bit interface
-#define PIN_QSPI_IO1 (32 + 1) // MISO if using two bit interface
-#define PIN_QSPI_IO2 (0 + 7)   // WP if using two bit interface (i.e. not used)
-#define PIN_QSPI_IO3 (0 + 5)   // HOLD if using two bit interface (i.e. not used)
+// #define PIN_QSPI_SCK (32 + 14)
+// #define PIN_QSPI_CS (32 + 15)
+// #define PIN_QSPI_IO0 (32 + 12) // MOSI if using two bit interface
+// #define PIN_QSPI_IO1 (32 + 1) // MISO if using two bit interface
+// #define PIN_QSPI_IO2 (0 + 7)   // WP if using two bit interface (i.e. not used)
+// #define PIN_QSPI_IO3 (0 + 5)   // HOLD if using two bit interface (i.e. not used)
 
 // // On-board QSPI Flash
-#define EXTERNAL_FLASH_DEVICES MX25R1635F
-#define EXTERNAL_FLASH_USE_QSPI
+// #define EXTERNAL_FLASH_DEVICES MX25R1635F
+// #define EXTERNAL_FLASH_USE_QSPI
 
 /*
  * Lora radio
@@ -104,8 +104,6 @@ static const uint8_t SCK = PIN_SPI_SCK;
 #define PIN_WIRE_SDA 30 // SDA     P0.31
 #define HAS_SCREEN 1 // Assume no screen present by default to prevent crash...
 #define USE_SSD1306
-// #define SSD1306_SCL PIN_WIRE_SCL
-// #define SSD1306_SDA PIN_WIRE_SDA
 
 // GPS
 #define PIN_SERIAL1_RX (0 + 20)
@@ -152,7 +150,7 @@ static const uint8_t A4 = PIN_A4;
 #undef AREF_VOLTAGE
 #define AREF_VOLTAGE 3.0
 #define VBAT_AR_INTERNAL AR_INTERNAL_3_0
-#define ADC_MULTIPLIER 3.33 // fine tuning of voltage
+#define ADC_MULTIPLIER (3.2006F)
 
 //Buzzer
 #define PIN_BUZZER (0 + 2)
