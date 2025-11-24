@@ -18,6 +18,32 @@
 
 #ifndef _VARIANT_EBYTE_E73_2G4M08S1C_DIY
 #define _VARIANT_EBYTE_E73_2G4M08S1C_DIY
+
+#define MESHTASTIC_EXCLUDE_WIFI 1
+#define MESHTASTIC_EXCLUDE_MQTT 1
+//#define MESHTASTIC_EXCLUDE_AUDIO 1             // 排除音频模块（语音、蜂鸣器等）
+#define MESHTASTIC_EXCLUDE_DETECTIONSENSOR 1   // 排除动作/检测传感器模块
+#define MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR 1 // 排除环境传感器（温湿度、气压、光照等）
+#define MESHTASTIC_EXCLUDE_HEALTH_TELEMETRY 1  // 排除健康传感器数据采集（心率、血氧等）
+//#define MESHTASTIC_EXCLUDE_EXTERNALNOTIFICATION 1 // 排除外部通知模块（外部事件触发消息）
+#define MESHTASTIC_EXCLUDE_PAXCOUNTER 1        // 排除 PaxCounter 功能（统计人员流量）
+#define MESHTASTIC_EXCLUDE_POWER_TELEMETRY 1   // 排除电源监控/电流电压采集模块
+#define MESHTASTIC_EXCLUDE_RANGETEST 1         // 排除射程测试模块
+//#define MESHTASTIC_EXCLUDE_REMOTEHARDWARE 1    // 排除远程硬件控制模块
+//#define MESHTASTIC_EXCLUDE_STOREFORWARD 1      // 排除消息存储转发模块
+//#define MESHTASTIC_EXCLUDE_TEXTMESSAGE 1       // 排除文本消息模块
+#define MESHTASTIC_EXCLUDE_ATAK 1              // 排除 ATAK（Android Tactical Assault Kit）集成
+#define MESHTASTIC_EXCLUDE_CANNEDMESSAGES 1    // 排除预设快速消息模块
+#define MESHTASTIC_EXCLUDE_NEIGHBORINFO 1      // 排除邻居信息收集模块
+//#define MESHTASTIC_EXCLUDE_TRACEROUTE 1        // 排除 Traceroute 路径测试模块
+#define MESHTASTIC_EXCLUDE_WAYPOINT 1          // 排除地理标记/航点模块
+#define MESHTASTIC_EXCLUDE_INPUTBROKER 1       // 排除输入代理模块（事件转发）
+#define MESHTASTIC_EXCLUDE_SERIAL 1            // 排除串口接口模块
+#define MESHTASTIC_EXCLUDE_POWERSTRESS 1       // 排除功率压力测试模块
+//#define MESHTASTIC_EXCLUDE_ADMIN 1             // 排除管理员/管理功能模块
+
+
+
 /** Master clock frequency */
 #define VARIANT_MCK (64000000ul)
 
