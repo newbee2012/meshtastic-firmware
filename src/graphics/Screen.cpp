@@ -2894,7 +2894,10 @@ static uint16_t decodeUTF8Next(const char* &p) {
 void Screen::drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, const char *text, uint16_t maxWidth) {
     int16_t cursorX = x;
     int16_t cursorY = y;
-    uint16_t lineHeight = 16;
+    uint16_t lineHeight = 14;
+    // [设置] 汉字步进宽度：建议设为 13 或 14
+    // 16 是全宽，14 会让字距更紧凑，13 会非常紧凑
+    uint16_t cnCharWidth = 14;
 
     display->setFont(ArialMT_Plain_10); // 英文使用默认字体
 
@@ -2913,34 +2916,47 @@ void Screen::drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, const
             char buf[2] = {(char)unicode, 0};
             int w = display->getStringWidth(buf);
             if (cursorX + w > x + maxWidth) { cursorX = x; cursorY += lineHeight; }
-
-            display->drawString(cursorX, cursorY + 3, buf); // +3 为了与中文底对齐
+            display->drawString(cursorX, cursorY+2, buf); // +3 为了与中文底对齐
             cursorX += w;
         } else {
             // --- 中文字符 ---
-            if (cursorX + 16 > x + maxWidth) { cursorX = x; cursorY += lineHeight; }
+            if (cursorX + cnCharWidth > x + maxWidth) { cursorX = x; cursorY += lineHeight; }
 
             uint16_t gbCode = getGB2312FromUnicode(unicode);
             if (gbCode != 0) {
                 uint8_t high = (gbCode >> 8);
                 uint8_t low = (gbCode & 0xFF);
-                // 校验是否在 16-87 区范围内
-                if (high >= 0xB0 && high <= 0xF7) {
-                    uint32_t idx = ((high - 0xB0) * 94 + (low - 0xA1));
-                    uint32_t offset = idx * 32;
-
+                // [关键修改点] 严格检查 GB Code 是否在预期的 A1A1 到 F7FE 范围内
+                if (high >= GB_START_HIGH && high <= GB_END_HIGH && 
+                    low >= GB_START_LOW && low <= GB_END_LOW) {
+                    
+                    // 修正索引公式：
+                    // Zone Index = (高字节 - 0xA1)
+                    uint32_t zone_index = (high - GB_START_HIGH); 
+                    
+                    // Position Index = (低字节 - 0xA1)
+                    uint32_t pos_index = (low - GB_START_LOW); 
+                    
+                    // 总索引 = (区索引 * 每区位置数 94) + 位索引
+                    uint32_t index = (zone_index * GB_POSITIONS_PER_ZONE) + pos_index;
+                    uint32_t offset = index * 32;
+                    
+                    // 从 PROGMEM 读取 32 字节并绘制
+                    // 注意：这里我们信任 Python 脚本已经生成了完整的、连续的数组
                     uint8_t buffer[32];
                     for(int k=0; k<32; k++) {
                         buffer[k] = pgm_read_byte(&GB2312_FontData[offset + k]);
                     }
                     display->drawXbm(cursorX, cursorY, 16, 16, buffer);
+
                 } else {
-                    display->drawRect(cursorX+2, cursorY+2, 12, 12); // 超出范围绘制框
+                    // GB编码无效或超出范围（如 F8XX 及以后的码位）
+                    display->drawRect(cursorX+2, cursorY+2, 12, 12); 
                 }
             } else {
                 display->drawRect(cursorX+2, cursorY+2, 12, 12); // 未知字符绘制框
             }
-            cursorX += 16;
+            cursorX += cnCharWidth;
         }
     }
 }

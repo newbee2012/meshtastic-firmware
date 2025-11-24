@@ -18,7 +18,6 @@
 
 #ifndef _VARIANT_EBYTE_E73_2G4M08S1C_DIY
 #define _VARIANT_EBYTE_E73_2G4M08S1C_DIY
-
 #define MESHTASTIC_EXCLUDE_WIFI 1
 #define MESHTASTIC_EXCLUDE_MQTT 1
 //#define MESHTASTIC_EXCLUDE_AUDIO 1             // 排除音频模块（语音、蜂鸣器等）
@@ -30,7 +29,7 @@
 #define MESHTASTIC_EXCLUDE_POWER_TELEMETRY 1   // 排除电源监控/电流电压采集模块
 #define MESHTASTIC_EXCLUDE_RANGETEST 1         // 排除射程测试模块
 //#define MESHTASTIC_EXCLUDE_REMOTEHARDWARE 1    // 排除远程硬件控制模块
-//#define MESHTASTIC_EXCLUDE_STOREFORWARD 1      // 排除消息存储转发模块
+#define MESHTASTIC_EXCLUDE_STOREFORWARD 1      // 排除消息存储转发模块
 //#define MESHTASTIC_EXCLUDE_TEXTMESSAGE 1       // 排除文本消息模块
 #define MESHTASTIC_EXCLUDE_ATAK 1              // 排除 ATAK（Android Tactical Assault Kit）集成
 #define MESHTASTIC_EXCLUDE_CANNEDMESSAGES 1    // 排除预设快速消息模块
@@ -42,7 +41,7 @@
 #define MESHTASTIC_EXCLUDE_POWERSTRESS 1       // 排除功率压力测试模块
 //#define MESHTASTIC_EXCLUDE_ADMIN 1             // 排除管理员/管理功能模块
 
-
+#define MESHTASTIC_HAS_NO_CHARGING_STATUS 1
 
 /** Master clock frequency */
 #define VARIANT_MCK (64000000ul)
@@ -80,18 +79,6 @@ extern "C" {
 #define LED_PWM_FREQ 1000           // PWM频率(Hz)，通常500-5000Hz
 #define LED_PWM_RESOLUTION 8        // PWM分辨率(位)，8位=0-255
 
-// // QSPI Pins
-// #define PIN_QSPI_SCK (32 + 14)
-// #define PIN_QSPI_CS (32 + 15)
-// #define PIN_QSPI_IO0 (32 + 12) // MOSI if using two bit interface
-// #define PIN_QSPI_IO1 (32 + 1) // MISO if using two bit interface
-// #define PIN_QSPI_IO2 (0 + 7)   // WP if using two bit interface (i.e. not used)
-// #define PIN_QSPI_IO3 (0 + 5)   // HOLD if using two bit interface (i.e. not used)
-
-// // On-board QSPI Flash
-// #define EXTERNAL_FLASH_DEVICES MX25R1635F
-// #define EXTERNAL_FLASH_USE_QSPI
-
 /*
  * Lora radio
  */
@@ -102,7 +89,7 @@ extern "C" {
 #define PIN_SPI_MOSI (0 + 5)
 #define PIN_SPI_MISO (32 + 9)
 #define USE_SX1268 // E22-400M30S, E22-400M33S, E22-400M22S, and E22-400MM22S use SX1268
-#define SX126X_DIO3_TCXO_VOLTAGE 1.8
+#define SX126X_DIO3_TCXO_VOLTAGE 2.2
 #define TCXO_OPTIONAL
 #define SX126X_MAX_POWER PIN_SPI_NSS // SX126xInterface.cpp defaults to 22 if not defined, but here we define it for good practice
 static const uint8_t SS = PIN_SPI_NSS;
@@ -154,27 +141,20 @@ static const uint8_t SCK = PIN_SPI_SCK;
 
 // Buttons
 #define BUTTON_PIN (32 + 4) // Use the BOOT button as the user button
-
+#define PIN_BUTTON1 (32 + 4)
+#define PIN_BUTTON2 (0 + 29)
 #ifdef USE_GPS_E108GN03D
     #define GPS_BAUDRATE 9600      //E108-GN03D
 #elif defined(USE_GPS_E108GN04D)
     #define GPS_BAUDRATE 38400   //E108-GN04D
 #endif
 
-
-// // ratio of voltage divider = 3.33 (R1=100k, R2=220k)
-// #define ADC_MULTIPLIER 3.33
-// #define BATTERY_PIN (32 + 6) // A battery voltage measurement pin, voltage divider connected here to measure battery voltage
-// #define BATTERY_SENSE_RESOLUTION_BITS 12
-// #define BATTERY_SENSE_RESOLUTION 4096.0
-// #define ADC_ATTEN ADC_ATTEN_DB_11
-
 /*
  * Analog pins
  */
 #define PIN_A4 (0 + 28)
 static const uint8_t A4 = PIN_A4;
-#define ADC_RESOLUTION 14
+//#define ADC_RESOLUTION 14
 #define BATTERY_PIN PIN_A4
 // and has 12 bit resolution
 #define BATTERY_SENSE_RESOLUTION_BITS 12
