@@ -42,11 +42,17 @@ extern "C" {
 #define NUM_ANALOG_OUTPUTS (0)
 
 // // LEDs
-#define PIN_LED1 (32 + 13)
-#define LED_BLUE PIN_LED1
-// #define LED_GREEN PIN_LED1
-#define LED_BUILTIN PIN_LED1
-#define LED_STATE_ON 1 // State when LED is lit
+#define PIN_LED1 (32 + 13)          // 假设使用GPIO45
+#define LED_BLUE -1
+#define LED_BUILTIN PIN_LED1        // 内置LED
+#define LED_STATE_ON 0              // 点亮电平
+
+// 呼吸灯专用配置
+#define LED_PWM_ENABLED 1           // 启用PWM功能
+#define LED_PWM_PIN LED_BUILTIN     // PWM引脚
+#define LED_PWM_CHANNEL 0           // PWM通道（0-15）
+#define LED_PWM_FREQ 1000           // PWM频率(Hz)，通常500-5000Hz
+#define LED_PWM_RESOLUTION 8        // PWM分辨率(位)，8位=0-255
 
 // // QSPI Pins
 // #define PIN_QSPI_SCK (32 + 14)
