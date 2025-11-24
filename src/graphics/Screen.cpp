@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 #include "Screen.h"
+#include "graphics/fonts/ChineseFont.h" // <--- add by chendejia
 #include "PowerMon.h"
 #include "Throttle.h"
 #include "configuration.h"
@@ -1066,7 +1067,9 @@ static void drawTextMessageFrame(OLEDDisplay *display, OLEDDisplayUiState *state
                          y + (SCREEN_HEIGHT - FONT_HEIGHT_MEDIUM - heart_height) / 2 + 2 + 5, heart_width, heart_height, heart);
     } else {
         snprintf(tempBuf, sizeof(tempBuf), "%s", mp.decoded.payload.bytes);
-        display->drawStringMaxWidth(0 + x, 0 + y + FONT_HEIGHT_SMALL, x + display->getWidth(), tempBuf);
+        //display->drawStringMaxWidth(0 + x, 0 + y + FONT_HEIGHT_SMALL, x + display->getWidth(), tempBuf);
+        // 使用支持中文的绘制函数 modified by chendejia
+        screen->drawChineseString(display, x, y + FONT_HEIGHT_SMALL, tempBuf, display->getWidth());
     }
 #else
     snprintf(tempBuf, sizeof(tempBuf), "%s", mp.decoded.payload.bytes);
@@ -2851,7 +2854,101 @@ int Screen::handleAdminMessage(const meshtastic_AdminMessage *arg)
     return 0;
 }
 
+// add by chendejia
+// ================= 中文支持核心实现 =================
+
+// 辅助：二分查找 GB2312 编码
+static uint16_t getGB2312FromUnicode(uint16_t unicode) {
+    int low = 0;
+    int high = sizeof(UTF8ToGB_Table) / sizeof(CodeMap) - 1;
+    while (low <= high) {
+        int mid = (low + high) / 2;
+        uint16_t midVal = pgm_read_word(&UTF8ToGB_Table[mid].unicode);
+        if (midVal < unicode) {
+            low = mid + 1;
+        } else if (midVal > unicode) {
+            high = mid - 1;
+        } else {
+            return pgm_read_word(&UTF8ToGB_Table[mid].gbCode);
+        }
+    }
+    return 0;
+}
+
+// 辅助：解码 UTF-8 字符
+static uint16_t decodeUTF8Next(const char* &p) {
+    uint8_t c = (uint8_t)*p;
+    if (c < 0x80) { p++; return c; }
+    if ((c & 0xE0) == 0xC0) { 
+        uint16_t v = (c & 0x1F) << 6; p++; 
+        v |= ((uint8_t)*p++ & 0x3F); return v; 
+    }
+    if ((c & 0xF0) == 0xE0) { 
+        uint16_t v = (c & 0x0F) << 12; p++; 
+        v |= ((uint8_t)*p++ & 0x3F) << 6; 
+        v |= ((uint8_t)*p++ & 0x3F); return v; 
+    }
+    p++; return '?'; // 跳过其他情况
+}
+
+void Screen::drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, const char *text, uint16_t maxWidth) {
+    int16_t cursorX = x;
+    int16_t cursorY = y;
+    uint16_t lineHeight = 16;
+
+    display->setFont(ArialMT_Plain_10); // 英文使用默认字体
+
+    const char* p = text;
+    while (*p != 0) {
+        // 换行检查
+        if (cursorX >= x + maxWidth) {
+            cursorX = x;
+            cursorY += lineHeight;
+        }
+
+        uint16_t unicode = decodeUTF8Next(p);
+
+        if (unicode < 128) {
+            // --- ASCII 字符 ---
+            char buf[2] = {(char)unicode, 0};
+            int w = display->getStringWidth(buf);
+            if (cursorX + w > x + maxWidth) { cursorX = x; cursorY += lineHeight; }
+
+            display->drawString(cursorX, cursorY + 3, buf); // +3 为了与中文底对齐
+            cursorX += w;
+        } else {
+            // --- 中文字符 ---
+            if (cursorX + 16 > x + maxWidth) { cursorX = x; cursorY += lineHeight; }
+
+            uint16_t gbCode = getGB2312FromUnicode(unicode);
+            if (gbCode != 0) {
+                uint8_t high = (gbCode >> 8);
+                uint8_t low = (gbCode & 0xFF);
+                // 校验是否在 16-87 区范围内
+                if (high >= 0xB0 && high <= 0xF7) {
+                    uint32_t idx = ((high - 0xB0) * 94 + (low - 0xA1));
+                    uint32_t offset = idx * 32;
+
+                    uint8_t buffer[32];
+                    for(int k=0; k<32; k++) {
+                        buffer[k] = pgm_read_byte(&GB2312_FontData[offset + k]);
+                    }
+                    display->drawXbm(cursorX, cursorY, 16, 16, buffer);
+                } else {
+                    display->drawRect(cursorX+2, cursorY+2, 12, 12); // 超出范围绘制框
+                }
+            } else {
+                display->drawRect(cursorX+2, cursorY+2, 12, 12); // 未知字符绘制框
+            }
+            cursorX += 16;
+        }
+    }
+}
+// end add
+
 } // namespace graphics
+
+
 #else
 graphics::Screen::Screen(ScanI2C::DeviceAddress, meshtastic_Config_DisplayConfig_OledType, OLEDDISPLAY_GEOMETRY) {}
 #endif // HAS_SCREEN
