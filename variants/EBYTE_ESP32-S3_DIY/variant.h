@@ -104,9 +104,9 @@
 #define LED_STATE_ON 0 // State when LED is litted
 
 // Buzzer
-#define PIN_BUZZER 12
+// #define PIN_BUZZER 12
+#define PIN_BUZZER -1
 
-
-
+#define OLED_MESSAGE_ZH 1
 
 

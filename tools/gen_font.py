@@ -10,7 +10,8 @@ except ImportError:
 # ================= 配置区域 (保持您当前的设置) =================
 FONT_FILE = "./simsun.ttc"
 FONT_SIZE = 13           
-OUTPUT_FILE = "../src/graphics/fonts/ChineseFont.h"
+OUTPUT_FILE_H = "../src/graphics/fonts/OLEDDisplayFontsZH.h"
+OUTPUT_FILE_CPP = "../src/graphics/fonts/OLEDDisplayFontsZH.cpp"
 Y_OFFSET = 1              # 垂直对齐偏移量
 # ===============================================================
 
@@ -39,7 +40,7 @@ def get_bitmap(char, font, debug=False):
         byte2 = 0
         for c in range(8):
             if img.getpixel((c, r)):
-                byte1 |= (1 << c)
+                byte1 |= (1 << (c))
         for c in range(8, 16):
             if img.getpixel((c, r)):
                 byte2 |= (1 << (c - 8))
@@ -91,31 +92,53 @@ def main():
 
     map_table.sort(key=lambda x: x[0])
 
-    # === 写入 .h 文件 ===
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        f.write("#ifndef CHINESEFONT_H\n#define CHINESEFONT_H\n\n")
-        f.write("#include <Arduino.h>\n\n")
-        
-        f.write("// GB2312 汉字点阵 (Zone 1-87, A1A1-E7FE)\n")
-        f.write("const uint8_t GB2312_FontData[{} * 32] PROGMEM = {{\n".format(len(chars_data)))
+    # 生成OLEDDisplayFontsZH.h头文件
+    header_content = '''#ifndef OLEDDISPLAYFONTSZH_h
+#define OLEDDISPLAYFONTSZH_h
+
+#ifdef ARDUINO
+#include <Arduino.h>
+#elif __MBED__
+#define PROGMEM
+#endif
+
+#ifdef OLED_MESSAGE_ZH
+
+#define GB_START_HIGH 0xA1
+#define GB_START_LOW 0xA1
+#define GB_POSITIONS_PER_ZONE 94
+#define GB_END_HIGH 0xE7
+#define GB_END_LOW 0xFE
+
+struct CodeMap {
+    uint16_t unicode;
+    uint16_t gbCode;
+};
+
+extern const uint8_t Simsun_Plain_10_ZH[] PROGMEM;
+extern const CodeMap UTF8ToGB_Table[5941] PROGMEM;
+#endif
+#endif
+'''
+
+    # 写入OLEDDisplayFontsZH.h"文件
+    with open(OUTPUT_FILE_H, "w", encoding="utf-8") as f:
+        f.write(header_content)
+
+    # 写入 OLEDDisplayFontsZH.cpp 文件
+    with open(OUTPUT_FILE_CPP, "w", encoding="utf-8") as f:
+        f.write('#include "OLEDDisplayFontsZH.h"\n\n')
+        f.write('#ifdef OLED_MESSAGE_ZH\n')
+        f.write("const uint8_t Simsun_Plain_10_ZH[{} * 32] PROGMEM = {{\n".format(len(chars_data)))
         for idx, bitmap in enumerate(chars_data):
             hex_str = ", ".join(["0x{:02X}".format(b) for b in bitmap])
             f.write("    {}, // idx {}\n".format(hex_str, idx))
         f.write("};\n\n")
         
-        f.write("struct CodeMap {\n    uint16_t unicode;\n    uint16_t gbCode;\n};\n\n")
         f.write("const CodeMap UTF8ToGB_Table[{}] PROGMEM = {{\n".format(len(map_table)))
         for uni, gb in map_table:
             f.write("    {{0x{:04X}, 0x{:04X}}},\n".format(uni, gb))
         f.write("};\n\n")
-        
-        # 写入宏定义供 C++ 使用
-        f.write("#define GB_START_HIGH 0xA1\n")
-        f.write("#define GB_START_LOW 0xA1\n")
-        f.write("#define GB_POSITIONS_PER_ZONE 94\n")
-        f.write("#define GB_END_HIGH 0xE7\n")
-        f.write("#define GB_END_LOW 0xFE\n")
-        
         f.write("#endif\n")
 
 if __name__ == "__main__":

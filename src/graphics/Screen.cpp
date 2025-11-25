@@ -20,7 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 #include "Screen.h"
-#include "graphics/fonts/ChineseFont.h" // <--- add by chendejia
+#ifdef OLED_MESSAGE_ZH
+#include "graphics/fonts/OLEDDisplayFontsZH.h"
+#endif
 #include "PowerMon.h"
 #include "Throttle.h"
 #include "configuration.h"
@@ -1067,13 +1069,19 @@ static void drawTextMessageFrame(OLEDDisplay *display, OLEDDisplayUiState *state
                          y + (SCREEN_HEIGHT - FONT_HEIGHT_MEDIUM - heart_height) / 2 + 2 + 5, heart_width, heart_height, heart);
     } else {
         snprintf(tempBuf, sizeof(tempBuf), "%s", mp.decoded.payload.bytes);
-        //display->drawStringMaxWidth(0 + x, 0 + y + FONT_HEIGHT_SMALL, x + display->getWidth(), tempBuf);
-        // 使用支持中文的绘制函数 modified by chendejia
+    #ifdef OLED_MESSAGE_ZH
         screen->drawChineseString(display, x, y + FONT_HEIGHT_SMALL, tempBuf, display->getWidth());
+    #else
+        display->drawStringMaxWidth(0 + x, 0 + y + FONT_HEIGHT_SMALL, x + display->getWidth(), tempBuf);
+    #endif
     }
 #else
     snprintf(tempBuf, sizeof(tempBuf), "%s", mp.decoded.payload.bytes);
-    display->drawStringMaxWidth(0 + x, 0 + y + FONT_HEIGHT_SMALL, x + display->getWidth(), tempBuf);
+    #ifdef OLED_MESSAGE_ZH
+        screen->drawChineseString(display, x, y + FONT_HEIGHT_SMALL, tempBuf, display->getWidth());
+    #else
+        display->drawStringMaxWidth(0 + x, 0 + y + FONT_HEIGHT_SMALL, x + display->getWidth(), tempBuf);
+    #endif
 #endif
 }
 
@@ -2854,7 +2862,8 @@ int Screen::handleAdminMessage(const meshtastic_AdminMessage *arg)
     return 0;
 }
 
-// add by chendejia
+
+#ifdef OLED_MESSAGE_ZH
 // ================= 中文支持核心实现 =================
 
 // 辅助：二分查找 GB2312 编码
@@ -2897,7 +2906,7 @@ void Screen::drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, const
     uint16_t lineHeight = 14;
     // [设置] 汉字步进宽度：建议设为 13 或 14
     // 16 是全宽，14 会让字距更紧凑，13 会非常紧凑
-    uint16_t cnCharWidth = 14;
+    uint16_t cnCharWidth = 13;
 
     display->setFont(ArialMT_Plain_10); // 英文使用默认字体
 
@@ -2916,11 +2925,14 @@ void Screen::drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, const
             char buf[2] = {(char)unicode, 0};
             int w = display->getStringWidth(buf);
             if (cursorX + w > x + maxWidth) { cursorX = x; cursorY += lineHeight; }
-            display->drawString(cursorX, cursorY+2, buf); // +3 为了与中文底对齐
+            display->drawString(cursorX, cursorY+2, buf); // +2 为了与中文底对齐
             cursorX += w;
         } else {
             // --- 中文字符 ---
-            if (cursorX + cnCharWidth > x + maxWidth) { cursorX = x; cursorY += lineHeight; }
+            if (cursorX + cnCharWidth > x + maxWidth) { 
+                cursorX = x; 
+                cursorY += lineHeight; 
+            }
 
             uint16_t gbCode = getGB2312FromUnicode(unicode);
             if (gbCode != 0) {
@@ -2945,7 +2957,7 @@ void Screen::drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, const
                     // 注意：这里我们信任 Python 脚本已经生成了完整的、连续的数组
                     uint8_t buffer[32];
                     for(int k=0; k<32; k++) {
-                        buffer[k] = pgm_read_byte(&GB2312_FontData[offset + k]);
+                        buffer[k] = pgm_read_byte(&Simsun_Plain_10_ZH[offset + k]);
                     }
                     display->drawXbm(cursorX, cursorY, 16, 16, buffer);
 
@@ -2960,7 +2972,8 @@ void Screen::drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, const
         }
     }
 }
-// end add
+#endif
+
 
 } // namespace graphics
 

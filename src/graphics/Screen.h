@@ -306,9 +306,9 @@ class Screen : public concurrency::OSThread
         }
     }
 
-    // === 新增：中文绘制函数声明 === by chendejia
+    #ifdef OLED_MESSAGE_ZH
     void drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, const char *text, uint16_t maxWidth);
-    // ============================
+    #endif
 
     /// generates a very brief time delta display
     std::string drawTimeDelta(uint32_t days, uint32_t hours, uint32_t minutes, uint32_t seconds);
