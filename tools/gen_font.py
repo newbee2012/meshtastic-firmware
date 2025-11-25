@@ -8,7 +8,7 @@ except ImportError:
     sys.exit(1)
 
 # ================= 配置区域 (保持您当前的设置) =================
-FONT_FILE = "simsun.ttc"
+FONT_FILE = "./simsun.ttc"
 FONT_SIZE = 13           
 OUTPUT_FILE = "../src/graphics/fonts/ChineseFont.h"
 Y_OFFSET = 1              # 垂直对齐偏移量
@@ -16,7 +16,7 @@ Y_OFFSET = 1              # 垂直对齐偏移量
 
 # GB2312 编码常量
 GB_START_HIGH = 0xA1  # 区码起始字节 (1区)
-GB_END_HIGH = 0xF7    # 区码结束字节 (87区)
+GB_END_HIGH = 0xE7    # 区码结束字节 (87区)
 GB_START_LOW = 0xA1   # 位码起始字节 (1位)
 GB_END_LOW = 0xFE     # 位码结束字节 (94位)
 GB_POSITIONS_PER_ZONE = (GB_END_LOW - GB_START_LOW + 1) # 94
@@ -96,7 +96,7 @@ def main():
         f.write("#ifndef CHINESEFONT_H\n#define CHINESEFONT_H\n\n")
         f.write("#include <Arduino.h>\n\n")
         
-        f.write("// GB2312 汉字点阵 (Zone 1-87, A1A1-F7FE)\n")
+        f.write("// GB2312 汉字点阵 (Zone 1-87, A1A1-E7FE)\n")
         f.write("const uint8_t GB2312_FontData[{} * 32] PROGMEM = {{\n".format(len(chars_data)))
         for idx, bitmap in enumerate(chars_data):
             hex_str = ", ".join(["0x{:02X}".format(b) for b in bitmap])
@@ -113,7 +113,7 @@ def main():
         f.write("#define GB_START_HIGH 0xA1\n")
         f.write("#define GB_START_LOW 0xA1\n")
         f.write("#define GB_POSITIONS_PER_ZONE 94\n")
-        f.write("#define GB_END_HIGH 0xF7\n")
+        f.write("#define GB_END_HIGH 0xE7\n")
         f.write("#define GB_END_LOW 0xFE\n")
         
         f.write("#endif\n")

@@ -18,30 +18,35 @@
 
 #ifndef _VARIANT_EBYTE_E73_2G4M08S1C_DIY
 #define _VARIANT_EBYTE_E73_2G4M08S1C_DIY
-#define MESHTASTIC_EXCLUDE_WIFI 1
-#define MESHTASTIC_EXCLUDE_MQTT 1
-//#define MESHTASTIC_EXCLUDE_AUDIO 1             // 排除音频模块（语音、蜂鸣器等）
+
+/** 排除的模块 */
+#define MESHTASTIC_EXCLUDE_WIFI 1   // 排除WiFi模块
+#define MESHTASTIC_EXCLUDE_WEBSERVER 1   // 排除Web服务器模块
+#define MESHTASTIC_EXCLUDE_SOCKETAPI 1   // 排除Socket API模块
+#define MESHTASTIC_EXCLUDE_MQTT 1   // 排除MQTT模块
 #define MESHTASTIC_EXCLUDE_DETECTIONSENSOR 1   // 排除动作/检测传感器模块
-#define MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR 1 // 排除环境传感器（温湿度、气压、光照等）
 #define MESHTASTIC_EXCLUDE_HEALTH_TELEMETRY 1  // 排除健康传感器数据采集（心率、血氧等）
-//#define MESHTASTIC_EXCLUDE_EXTERNALNOTIFICATION 1 // 排除外部通知模块（外部事件触发消息）
 #define MESHTASTIC_EXCLUDE_PAXCOUNTER 1        // 排除 PaxCounter 功能（统计人员流量）
-#define MESHTASTIC_EXCLUDE_POWER_TELEMETRY 1   // 排除电源监控/电流电压采集模块
 #define MESHTASTIC_EXCLUDE_RANGETEST 1         // 排除射程测试模块
-//#define MESHTASTIC_EXCLUDE_REMOTEHARDWARE 1    // 排除远程硬件控制模块
 #define MESHTASTIC_EXCLUDE_STOREFORWARD 1      // 排除消息存储转发模块
-//#define MESHTASTIC_EXCLUDE_TEXTMESSAGE 1       // 排除文本消息模块
 #define MESHTASTIC_EXCLUDE_ATAK 1              // 排除 ATAK（Android Tactical Assault Kit）集成
 #define MESHTASTIC_EXCLUDE_CANNEDMESSAGES 1    // 排除预设快速消息模块
 #define MESHTASTIC_EXCLUDE_NEIGHBORINFO 1      // 排除邻居信息收集模块
-//#define MESHTASTIC_EXCLUDE_TRACEROUTE 1        // 排除 Traceroute 路径测试模块
 #define MESHTASTIC_EXCLUDE_WAYPOINT 1          // 排除地理标记/航点模块
 #define MESHTASTIC_EXCLUDE_INPUTBROKER 1       // 排除输入代理模块（事件转发）
 #define MESHTASTIC_EXCLUDE_SERIAL 1            // 排除串口接口模块
 #define MESHTASTIC_EXCLUDE_POWERSTRESS 1       // 排除功率压力测试模块
-//#define MESHTASTIC_EXCLUDE_ADMIN 1             // 排除管理员/管理功能模块
+#define MESHTASTIC_EXCLUDE_PKI 1               // 排除PKI（公钥基础设施）模块
 
-#define MESHTASTIC_HAS_NO_CHARGING_STATUS 1
+/** 启用的模块 */
+//#define MESHTASTIC_EXCLUDE_AUDIO 1             // 排除音频模块（语音、蜂鸣器等）
+//#define MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR 1 // 排除环境传感器（温湿度、气压、光照等）
+//#define MESHTASTIC_EXCLUDE_EXTERNALNOTIFICATION 1 // 排除外部通知模块（外部事件触发消息）
+//#define MESHTASTIC_EXCLUDE_POWER_TELEMETRY 1   // 排除电源监控/电流电压采集模块
+//#define MESHTASTIC_EXCLUDE_REMOTEHARDWARE 1    // 排除远程硬件控制模块
+//#define MESHTASTIC_EXCLUDE_TEXTMESSAGE 1       // 排除文本消息模块
+//#define MESHTASTIC_EXCLUDE_TRACEROUTE 1        // 排除 Traceroute 路径测试模块
+//#define MESHTASTIC_EXCLUDE_ADMIN 1             // 排除管理员/管理功能模块
 
 /** Master clock frequency */
 #define VARIANT_MCK (64000000ul)
@@ -84,12 +89,12 @@ extern "C" {
  */
 #define RADIOLIB_DEBUG_BASIC 1
 #define SPI_INTERFACES_COUNT 1
-#define PIN_SPI_NSS (26)
-#define PIN_SPI_SCK (6)
+#define PIN_SPI_NSS (0 + 26)
+#define PIN_SPI_SCK (0 + 6)
 #define PIN_SPI_MOSI (0 + 5)
 #define PIN_SPI_MISO (32 + 9)
 #define USE_SX1268 // E22-400M30S, E22-400M33S, E22-400M22S, and E22-400MM22S use SX1268
-#define SX126X_DIO3_TCXO_VOLTAGE 2.2
+#define SX126X_DIO3_TCXO_VOLTAGE 2.2 // EBYTE module's TCXO voltage
 #define TCXO_OPTIONAL
 #define SX126X_MAX_POWER PIN_SPI_NSS // SX126xInterface.cpp defaults to 22 if not defined, but here we define it for good practice
 static const uint8_t SS = PIN_SPI_NSS;
@@ -104,20 +109,18 @@ static const uint8_t SCK = PIN_SPI_SCK;
 #define SX126X_TXEN (0 + 12)
 #define SX126X_RXEN (0 + 4)
 
-
-#define LORA_CS PIN_SPI_NSS     // Compatibility with variant file configuration structure
-#define LORA_SCK PIN_SPI_SCK   // Compatibility with variant file configuration structure
+// LORA
+#define LORA_CS PIN_SPI_NSS     
+#define LORA_SCK PIN_SPI_SCK   
 #define LORA_RESET SX126X_RESET
-#define LORA_MOSI PIN_SPI_MOSI // Compatibility with variant file configuration structure
-#define LORA_MISO PIN_SPI_MISO // Compatibility with variant file configuration structure
- // Compatibility with variant file configuration structure
+#define LORA_MOSI PIN_SPI_MOSI 
+#define LORA_MISO PIN_SPI_MISO 
 #define LORA_DIO0 -1        // a No connect on the SX1262/SX1268 module
 #define LORA_DIO1 SX126X_DIO1
 #define LORA_DIO2 SX126X_DIO2 // Compatibility with variant file configuration structure
 #define LORA_DIO3 
 
-
-// //SCREEN
+// SCREEN
 #define WIRE_INTERFACES_COUNT 1
 #define PIN_WIRE_SCL 31 // SCL     P0.29
 #define PIN_WIRE_SDA 30 // SDA     P0.31
@@ -129,8 +132,6 @@ static const uint8_t SCK = PIN_SPI_SCK;
 #define PIN_SERIAL1_TX (0 + 22) 
 #define PIN_SERIAL2_RX (-1)
 #define PIN_SERIAL2_TX (-1)
-#define USE_GPS_E108GN03D
-// //#define USE_GPS_E108GN04D
 #define HAS_GPS 1 // Don't need to set this to 0 to prevent a crash as it doesn't crash if GPS not found, will probe by default
 #define PIN_GPS_EN (0 + 24)
 #define PIN_GPS_PPS (0 + 13)
@@ -138,16 +139,17 @@ static const uint8_t SCK = PIN_SPI_SCK;
 #define GPS_TX_PIN PIN_SERIAL1_RX
 #define GPS_RX_PIN PIN_SERIAL1_TX
 #define GPS_THREAD_INTERVAL 50
-
-// Buttons
-#define BUTTON_PIN (32 + 4) // Use the BOOT button as the user button
-#define PIN_BUTTON1 (32 + 4)
-#define PIN_BUTTON2 (0 + 29)
+#define USE_GPS_E108GN03D
+// #define USE_GPS_E108GN04D
 #ifdef USE_GPS_E108GN03D
     #define GPS_BAUDRATE 9600      //E108-GN03D
 #elif defined(USE_GPS_E108GN04D)
     #define GPS_BAUDRATE 38400   //E108-GN04D
 #endif
+
+// Buttons
+#define PIN_BUTTON1 (32 + 4)
+#define PIN_BUTTON2 (0 + 29)
 
 /*
  * Analog pins
