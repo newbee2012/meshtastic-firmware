@@ -260,7 +260,6 @@ void printInfo()
     LOG_INFO("S:B:%d,%s", HW_VENDOR, optstr(APP_VERSION));
 }
 #ifndef PIO_UNIT_TESTING
-
 void setup()
 {
 
@@ -778,9 +777,6 @@ void setup()
         SPI.begin();
     }
 #elif !defined(ARCH_ESP32) // ARCH_RP2040
-    pinMode(LORA_CS, OUTPUT);
-    digitalWrite(LORA_CS, HIGH);
-    delay(100);
     SPI.begin();
 #else
     // ESP32
@@ -1051,8 +1047,6 @@ void setup()
 #if defined(SX126X_DIO3_TCXO_VOLTAGE) && defined(TCXO_OPTIONAL)
     if ((!rIf) && (config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_LORA_24)) {
         // try using the specified TCXO voltage
-        LOG_WARN("SX1268 radio will init!!!!!!");
-        delay(10000);
         auto *sxIf = new SX1268Interface(RadioLibHAL, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY);
         sxIf->setTCXOVoltage(SX126X_DIO3_TCXO_VOLTAGE);
         if (!sxIf->init()) {
@@ -1064,9 +1058,6 @@ void setup()
             rIf = sxIf;
             radioType = SX1268_RADIO;
         }
-
-        LOG_WARN("SX1268 radio init finished!!!!!!");
-        delay(5000);
     }
 #endif
     if ((!rIf) && (config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_LORA_24)) {
@@ -1300,7 +1291,6 @@ void scannerToSensorsMap(const std::unique_ptr<ScanI2CTwoWire> &i2cScanner, Scan
     }
 }
 #endif
-
 
 #ifndef PIO_UNIT_TESTING
 void loop()

@@ -87,9 +87,9 @@ class NextHopRouter : public FloodingRouter
     }
 
     // The number of retransmissions intermediate nodes will do (actually 1 less than this)
-    constexpr static uint8_t NUM_INTERMEDIATE_RETX = 2;
+    constexpr static uint8_t NUM_INTERMEDIATE_RETX = 1; //modifyed by chendejia on 2025-11-18
     // The number of retransmissions the original sender will do
-    constexpr static uint8_t NUM_RELIABLE_RETX = 3;
+    constexpr static uint8_t NUM_RELIABLE_RETX = 1; //modifyed by chendejia on 2025-11-18
 
   protected:
     /**
