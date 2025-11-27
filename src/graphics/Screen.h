@@ -307,7 +307,7 @@ class Screen : public concurrency::OSThread
     }
 
     #ifdef OLED_MESSAGE_ZH
-    void drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, const char *text, uint16_t maxWidth);
+    void drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, uint16_t maxWidth, const char *text);
     #endif
 
     /// generates a very brief time delta display
