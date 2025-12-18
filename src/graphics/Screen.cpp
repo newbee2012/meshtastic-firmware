@@ -2901,6 +2901,16 @@ static uint16_t decodeUTF8Next(const char* &p) {
 }
 
 void Screen::drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, uint16_t maxWidth, const char *text) {
+    // 限制最大宽度扩展量，避免超出屏幕边界
+    const int16_t MAX_WIDTH_EXTENSION = 2;
+    //所有字符整体左右平移量 (根据实际效果微调，-1或0)
+    const int16_t X_OFFSET = -2;
+    //所有字符整体上下平移量 (根据实际效果微调，-1或0)
+    const int16_t Y_OFFSET = 0;
+    maxWidth += MAX_WIDTH_EXTENSION;
+    x += X_OFFSET;
+    y += Y_OFFSET;
+    
     int16_t cursorX = x;
     int16_t cursorY = y;
     uint16_t lineHeight = 14;
@@ -2908,12 +2918,14 @@ void Screen::drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, uint1
     
     // 使用 10px 小字体，避免与中文重叠
     display->setFont(FONT_SMALL); 
-    
-    // 垂直居中偏移量 (根据实际效果微调，3或4)
-    const int16_t EN_Y_OFFSET = 2; 
 
-    const char* p = text;
+    // 英文字符左右居中偏移量 (根据实际效果微调，3或4)
+    const int16_t EN_X_OFFSET = 1;
+    // 英文字符垂直居中偏移量 (根据实际效果微调，3或4)
+    const int16_t EN_Y_OFFSET = 2;
     
+    const char* p = text;
+
     while (*p != 0) {
         // [1. 换行检查] (针对上一个字符绘制后是否溢出)
         if (cursorX >= x + maxWidth) {
@@ -2945,7 +2957,7 @@ void Screen::drawChineseString(OLEDDisplay *display, int16_t x, int16_t y, uint1
             // 英文换行预判
             if (cursorX + w > x + maxWidth) { cursorX = x; cursorY += lineHeight; }
             
-            display->drawString(cursorX, cursorY + EN_Y_OFFSET, buf); 
+            display->drawString(cursorX + EN_X_OFFSET, cursorY + EN_Y_OFFSET, buf); 
             cursorX += w; 
         } else {
             // --- 中文字符 ---
