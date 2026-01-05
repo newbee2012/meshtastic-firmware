@@ -19,9 +19,10 @@
 #define MESHTASTIC_EXCLUDE_INPUTBROKER 1       // 排除输入代理模块（事件转发）
 #define MESHTASTIC_EXCLUDE_SERIAL 1            // 排除串口接口模块
 #define MESHTASTIC_EXCLUDE_POWERSTRESS 1       // 排除功率压力测试模块
-#define MESHTASTIC_EXCLUDE_PKI 1               // 排除PKI（公钥基础设施）模块
+
 
 /** 启用的模块 */
+//#define MESHTASTIC_EXCLUDE_PKI 1               // 排除PKI（公钥基础设施）模块
 //#define MESHTASTIC_EXCLUDE_AUDIO 1             // 排除音频模块（语音、蜂鸣器等）
 //#define MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR 1 // 排除环境传感器（温湿度、气压、光照等）
 //#define MESHTASTIC_EXCLUDE_EXTERNALNOTIFICATION 1 // 排除外部通知模块（外部事件触发消息）
