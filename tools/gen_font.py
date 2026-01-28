@@ -120,7 +120,7 @@ extern const CodeMap UTF8ToGB_Table[5941] PROGMEM;
 #endif
 #endif
 '''
-
+    header_content = header_content.replace('5941', str(len(map_table)))
     # 写入OLEDDisplayFontsZH.h"文件
     with open(OUTPUT_FILE_H, "w", encoding="utf-8") as f:
         f.write(header_content)
